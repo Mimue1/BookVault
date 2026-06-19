@@ -131,16 +131,8 @@ namespace Bücherverwaltung
         {
             var titel = AnsiConsole.Ask<string>("Titel");
             var autor = AnsiConsole.Ask<string>("Autor");
-            var preisInp = AnsiConsole.Prompt(new TextPrompt<string>("Preis [grey](optional)[/]").AllowEmpty());
-            preisInp = preisInp
-                .Replace("€", "")
-                .Replace("$", "")
-                .Replace(" ", "")
-                .Replace(",", ".")
-                .Trim();
-            double? preis = string.IsNullOrWhiteSpace(preisInp) ? null : double.Parse(preisInp);
-            var datumInp = AnsiConsole.Prompt(new TextPrompt<string>("Erscheinungsjahr [grey](optional)[/]").AllowEmpty());
-            int? datum = string.IsNullOrWhiteSpace(datumInp) ? null : int.Parse(datumInp);
+            var preis = AnsiConsole.Prompt(new TextPrompt<double?>("Preis [grey](optional)[/]").DefaultValue(null).AllowEmpty());
+            var datum = AnsiConsole.Prompt(new TextPrompt<int?>("Erscheinungsjahr [grey](optional)[/]").DefaultValue(null).AllowEmpty());
             var kategorie = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
                     .Title("Kategorie")
