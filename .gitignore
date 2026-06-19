@@ -1,0 +1,44 @@
+## Build results
+bin/
+obj/
+
+## Visual Studio files
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## Rider / JetBrains
+.idea/
+*.sln.iml
+
+## Logs
+*.log
+
+## .NET
+*.dll
+*.exe
+*.pdb
+*.cache
+
+## NuGet
+*.nupkg
+**/packages/*
+!**/packages/build/
+!**/packages/repositories.config
+
+## Publish output
+publish/
+
+## OS files
+.DS_Store
+Thumbs.db
+
+## Test results
+TestResults/
+*.trx
+
+## Optional: secrets
+appsettings.Development.json
+secrets.json
