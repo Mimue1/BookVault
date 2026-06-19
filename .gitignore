@@ -1,3 +1,6 @@
+#Database
+*.db
+
 ## Build results
 bin/
 obj/
