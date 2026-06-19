@@ -32,7 +32,7 @@ namespace Bücherverwaltung
 
 
                 using var command = connection.CreateCommand();
-                command.CommandText = "SELECT Name, Autor, Preis, Erscheinungsdatum, KategorieId FROM Buecher";
+                command.CommandText = "SELECT Titel, Autor, Preis, Erscheinungsjahr, KategorieId FROM Buecher";
 
                 using var reader = command.ExecuteReader();
                 while (reader.Read())
@@ -74,12 +74,12 @@ namespace Bücherverwaltung
 
 
                 using var command = connection.CreateCommand();
-                command.CommandText = "INSERT INTO Buecher (Name, Autor, Preis, Erscheinungsdatum, KategorieId) VALUES (@name, @autor, @preis, @erscheinungsdatum, @kategorieId)";
+                command.CommandText = "INSERT INTO Buecher (Titel, Autor, Preis, Erscheinungsjahr, KategorieId) VALUES (@titel, @autor, @preis, @erscheinungsjahr, @kategorieId)";
 
-                command.Parameters.AddWithValue("@name", buch.Name);
+                command.Parameters.AddWithValue("@titel", buch.Name);
                 command.Parameters.AddWithValue("@autor", buch.Autor);
                 command.Parameters.AddWithValue("@preis", buch.Preis.HasValue ? buch.Preis : DBNull.Value);
-                command.Parameters.AddWithValue("@erscheinungsdatum", buch.Datum.HasValue ? buch.Datum: DBNull.Value);
+                command.Parameters.AddWithValue("@erscheinungsjahr", buch.Datum.HasValue ? buch.Datum: DBNull.Value);
                 command.Parameters.AddWithValue("@kategorieId", kategorieId);
 
                 command.ExecuteNonQuery();
@@ -104,7 +104,7 @@ namespace Bücherverwaltung
                 connection.Open();
 
                 using var command = connection.CreateCommand();
-                command.CommandText = "SELECT Name, Autor, Preis, Erscheinungsdatum, KategorieId FROM Buecher WHERE KategorieId = @kategorie";
+                command.CommandText = "SELECT Titel, Autor, Preis, Erscheinungsjahr, KategorieId FROM Buecher WHERE KategorieId = @kategorie";
 
                 command.Parameters.AddWithValue("@kategorie", _kategorieMapper.GetKategorieId(category));
 
