@@ -30,44 +30,47 @@ namespace Bücherverwaltung
 
         public void Home()
         {
-            Console.Clear();
-
-            ShowHeader();
-
-            var readingBooks = _buecherService.GetCategoryBooks("Reading")
-                                          .Select(b => b.Name);
-
-            if (readingBooks.Any())
+            while (true)
             {
-                var content = new Markup(
-                    string.Join("\n", readingBooks.Select(b => $"- {b}"))
-                );
+                Console.Clear();
 
-                var panel = new Panel(content)
+                ShowHeader();
+
+                var readingBooks = _buecherService.GetCategoryBooks("Reading")
+                                              .Select(b => b.Name);
+
+                if (readingBooks.Any())
                 {
-                    Header = new PanelHeader("Currently Reading")
-                }.Padding(1, 1).Expand();
+                    var content = new Markup(
+                        string.Join("\n", readingBooks.Select(b => $"- {b}"))
+                    );
 
-                AnsiConsole.Write(panel);
-            }
+                    var panel = new Panel(content)
+                    {
+                        Header = new PanelHeader("Currently Reading")
+                    }.Padding(1, 1).Expand();
+
+                    AnsiConsole.Write(panel);
+                }
 
 
-            var choice = AnsiConsole.Prompt(
-                new SelectionPrompt<string>()
-                    .Title("")
-                    .AddChoices("Bücher verwalten", "Bücher anzeigen", "Beenden"));
+                var choice = AnsiConsole.Prompt(
+                    new SelectionPrompt<string>()
+                        .Title("")
+                        .AddChoices("Bücher verwalten", "Bücher anzeigen", "Beenden"));
 
 
-            switch (choice)
-            {
-                case "Bücher verwalten":
-                    ShowManagement();
-                    break;
-                case "Bücher anzeigen":
-                    ShowBooks(_buecherService.GetBuecher().OrderBy(b => b.Kategorie).ToList());
-                    break;
-                case "Beenden":
-                    return;
+                switch (choice)
+                {
+                    case "Bücher verwalten":
+                        ShowManagement();
+                        break;
+                    case "Bücher anzeigen":
+                        ShowBooks(_buecherService.GetBuecher().OrderBy(b => b.Kategorie).ToList());
+                        break;
+                    case "Beenden":
+                        return;
+                }
             }
         }
 
@@ -78,7 +81,7 @@ namespace Bücherverwaltung
 
             var table = new Table().Expand();
 
-            table.AddColumn("[bold]Name[/]");
+            table.AddColumn("[bold]Titel[/]");
             table.AddColumn("[bold]Autor[/]");
             table.AddColumn("[bold]Preis[/]");
             table.AddColumn("[bold]Erscheinungsjahr[/]");
@@ -107,7 +110,7 @@ namespace Bücherverwaltung
             var choice = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
                     .Title("Bitte wähle eine Aktion aus:")
-                    .AddChoices("Buch Hinzufügen", "Buch Bearbeiten", "Buch Löschen", "Buch Suchen", "Zurück"));
+                    .AddChoices("Buch Hinzufügen", "Buch Bearbeiten", "Buch Löschen", "Zurück"));
 
 
             switch (choice)
@@ -118,8 +121,6 @@ namespace Bücherverwaltung
                 case "Buch Bearbeiten":
                     break;
                 case "Buch Löschen":
-                    break;
-                case "Buch Suchen":
                     break;
                 case "Zurück":
                     Home();
