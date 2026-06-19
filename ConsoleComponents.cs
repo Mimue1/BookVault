@@ -46,7 +46,7 @@ namespace Bücherverwaltung
                 var panel = new Panel(content)
                 {
                     Header = new PanelHeader("Currently Reading")
-                }.Padding(1, 1);
+                }.Padding(1, 1).Expand();
 
                 AnsiConsole.Write(panel);
             }
