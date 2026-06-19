@@ -9,17 +9,20 @@ namespace Bücherverwaltung
     {
         private readonly string _sqliteDbPath;
 
+        private readonly string _connStr;
+
         private readonly KategorieMapper _kategorieMapper;
 
         public BuecherService(string dbPath)
         {
             _sqliteDbPath = dbPath;
+            _connStr = $"Data Source={_sqliteDbPath}";
             _kategorieMapper = new KategorieMapper(_sqliteDbPath);
         }
 
         public List<Buch> GetBuecher()
         {
-            using var connection = new SqliteConnection($"Data Source={_sqliteDbPath}");
+            using var connection = new SqliteConnection(_connStr);
 
             List<Buch> buecher = new();
 
@@ -62,7 +65,7 @@ namespace Bücherverwaltung
         public void AddBook(Buch buch)
         {
 
-            using var connection = new SqliteConnection($"Data Source={_sqliteDbPath}");
+            using var connection = new SqliteConnection(_connStr);
 
             var kategorieId = _kategorieMapper.GetKategorieId(buch.Kategorie);
 
@@ -95,7 +98,7 @@ namespace Bücherverwaltung
 
         public List<Buch> GetCategoryBooks(string category)
         {
-            using var connection = new SqliteConnection($"Data Source={_sqliteDbPath}");
+            using var connection = new SqliteConnection(_connStr);
 
             List<Buch> buecher = new();
 
@@ -135,7 +138,7 @@ namespace Bücherverwaltung
 
         public List<string> GetCategories()
         {
-            using var connection = new SqliteConnection($"Data Source={_sqliteDbPath}");
+            using var connection = new SqliteConnection(_connStr);
 
             List<string> categories = new();
 
@@ -163,6 +166,44 @@ namespace Bücherverwaltung
             }
 
             return categories;
+        }
+
+        public void EditBook(int bookId, Buch neuesBuch)
+        {
+
+            try
+            {
+                using var connection = new SqliteConnection(_connStr);
+
+                using var command = connection.CreateCommand();
+                command.CommandText = "UPDATE Buecher SET Titel = @titel, Autor = @autor, Preis = @preis, Erscheinungsjahr = @jahr, KategorieId = @kategorie WHERE BuecherId = @id";
+
+                command.Parameters.AddWithValue("@titel", neuesBuch.Name);
+                command.Parameters.AddWithValue("@autor", neuesBuch.Autor);
+                command.Parameters.AddWithValue("@preis", neuesBuch.Preis.HasValue ? neuesBuch.Preis : DBNull.Value);
+                command.Parameters.AddWithValue("@erscheinungsjahr", neuesBuch.Datum.HasValue ? neuesBuch.Datum : DBNull.Value);
+                command.Parameters.AddWithValue("@kategorieId", _kategorieMapper.GetKategorieId(neuesBuch.Kategorie));
+                command.Parameters.AddWithValue("@id", bookId);
+
+                command.ExecuteNonQuery();
+                connection.Close();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+
+        public void DeleteBook(int bookId)
+        {
+            using var connection = new SqliteConnection(_connStr);
+
+            using var command = connection.CreateCommand();
+            command.CommandText = "DELETE FROM Buecher WHERE BuecherId = @id";
+            command.Parameters.AddWithValue("@id", bookId);
+
+            command.ExecuteNonQuery();
+            connection.Close();
         }
     }
 }
