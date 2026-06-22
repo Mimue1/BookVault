@@ -24,11 +24,7 @@ namespace Bücherverwaltung
 
             List<Buch> buecher = new();
 
-
-            Console.WriteLine("Connecting to Database...");
             connection.Open();
-            Console.WriteLine("Connected");
-
 
             using var command = connection.CreateCommand();
             command.CommandText = "SELECT * FROM Buecher";
@@ -58,10 +54,7 @@ namespace Bücherverwaltung
 
             var kategorieId = _kategorieMapper.GetKategorieId(buch.Kategorie);
 
-            Console.WriteLine("Connecting to Database...");
             connection.Open();
-            Console.WriteLine("Connected");
-
 
             using var command = connection.CreateCommand();
             command.CommandText = "INSERT INTO Buecher (Titel, Autor, Preis, Erscheinungsjahr, KategorieId) VALUES (@titel, @autor, @preis, @erscheinungsjahr, @kategorieId)";

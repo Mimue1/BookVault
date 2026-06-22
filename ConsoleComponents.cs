@@ -1,10 +1,5 @@
 ﻿using Spectre.Console;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
+
 
 namespace Bücherverwaltung
 {
@@ -124,6 +119,8 @@ namespace Bücherverwaltung
                 case "Buch Bearbeiten":
                     break;
                 case "Buch Löschen":
+                    var buch = SearchBook();
+                    if(buch != null) DeleteBook(buch);
                     break;
                 case "Zurück":
                     Home();
@@ -154,14 +151,14 @@ namespace Bücherverwaltung
 
             AnsiConsole.WriteLine();
             var panel = new Panel(
-                    new Rows(
-                        new Markup($"[bold]Titel:[/] {buch.Name}"),
-                        new Markup($"[bold]Autor:[/] {buch.Autor}"),
-                        new Markup($"[bold]Preis:[/] {(buch.Preis.HasValue ? buch.Preis : "-")}"),
-                        new Markup($"[bold]Erscheinungsjahr:[/] {(buch.Datum.HasValue ? buch.Datum : "-")}"),
-                        new Markup($"[bold]Kategorie:[/] {buch.Kategorie}")))
-                .Header("[yellow]Summary[/]")
-                .Border(BoxBorder.Rounded);
+                new Rows(
+                    new Markup($"[bold]Titel:[/] {buch.Name}"),
+                    new Markup($"[bold]Autor:[/] {buch.Autor}"),
+                    new Markup($"[bold]Preis:[/] {(buch.Preis.HasValue ? buch.Preis : "-")}"),
+                    new Markup($"[bold]Erscheinungsjahr:[/] {(buch.Datum.HasValue ? buch.Datum : "-")}"),
+                    new Markup($"[bold]Kategorie:[/] {buch.Kategorie}")))
+            .Header("[yellow]Summary[/]")
+            .Border(BoxBorder.Rounded);
             AnsiConsole.Write(panel);
             AnsiConsole.WriteLine();
 
@@ -180,17 +177,51 @@ namespace Bücherverwaltung
             }
         }
 
-        public void SearchBook()
+        public Buch? SearchBook()
         {
             var suchbegriff = AnsiConsole.Ask<string>("Suchbegriff:");
 
             var treffer = _buecherService.SearchBooks(suchbegriff);
+            if (!treffer.Any())
+            {
+                AnsiConsole.MarkupLine("[yellow]Keine Treffer gefunden.[/]");
+                AnsiConsole.MarkupLine("[grey]Drücke eine Taste um zurück zu gehen...[/]");
+                Console.ReadKey();
+                return null;
+            }
 
             var buch = AnsiConsole.Prompt(
                 new SelectionPrompt<Buch>()
                     .Title("Buch auswählen")
                     .UseConverter(b => $"{b.Name} - {b.Autor}")
                     .AddChoices(treffer));
+
+            var panel = new Panel(
+            new Rows(
+                new Markup($"[bold]Titel:[/] {buch.Name}"),
+                new Markup($"[bold]Autor:[/] {buch.Autor}"),
+                new Markup($"[bold]Preis:[/] {(buch.Preis.HasValue ? buch.Preis : "-")}"),
+                new Markup($"[bold]Erscheinungsjahr:[/] {(buch.Datum.HasValue ? buch.Datum : "-")}"),
+                new Markup($"[bold]Kategorie:[/] {buch.Kategorie}")))
+            .Header($"[yellow]{buch.Name}:[/]");
+            AnsiConsole.Write(panel);
+            Console.ReadKey();
+            return buch;
+        }
+
+        public void DeleteBook(Buch buch)
+        {
+            AnsiConsole.MarkupLine($"[red]{buch.Name} wird gelöscht:[/]");
+
+            var confirmDelete = AnsiConsole.Confirm($"Möchten Sie dieses Buch wirklich löschen?", defaultValue: false);
+
+            if(confirmDelete)
+            {
+                _buecherService.DeleteBook(buch.Id);
+            }
+
+            return;
+
         }
     }
 }
