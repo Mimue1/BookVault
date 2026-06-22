@@ -179,9 +179,8 @@ namespace Bücherverwaltung
 
         public Buch? SearchBook()
         {
-            var suchbegriff = AnsiConsole.Ask<string>("Suchbegriff:");
-
-            var treffer = _buecherService.SearchBooks(suchbegriff);
+            var suchbegriff = AnsiConsole.Prompt(new TextPrompt<string>("Suchbegriff(Enter = Alle):").AllowEmpty());
+            var treffer = suchbegriff == string.Empty ? _buecherService.GetBuecher() : _buecherService.SearchBooks(suchbegriff);
             if (!treffer.Any())
             {
                 AnsiConsole.MarkupLine("[yellow]Keine Treffer gefunden.[/]");
