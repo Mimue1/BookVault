@@ -18,35 +18,6 @@ namespace Bücherverwaltung
             _kategorieMapper = new KategorieMapper(_sqliteDbPath);
         }
 
-        public int GetBookId(Buch buch)
-        {
-            using var connection = new SqliteConnection(_connStr);
-
-            Console.WriteLine("Connecting to Database...");
-            connection.Open();
-            Console.WriteLine("Connected");
-
-
-            using var command = connection.CreateCommand();
-            command.CommandText = "SELECT BuecherId FROM Buecher WHERE Titel = @titel AND Autor = @autor AND Preis = @preis AND Erscheinungsjahr = @erscheinungsjahr AND KategorieId = @kategorieId";
-
-            command.Parameters.AddWithValue("@titel", buch.Name);
-            command.Parameters.AddWithValue("@autor", buch.Autor);
-            command.Parameters.AddWithValue("@preis", buch.Preis.HasValue ? buch.Preis : DBNull.Value);
-            command.Parameters.AddWithValue("@erscheinungsjahr", buch.Datum.HasValue ? buch.Datum : DBNull.Value);
-            command.Parameters.AddWithValue("@kategorieId", _kategorieMapper.GetKategorieId(buch.Kategorie));
-                
-            var result =command.ExecuteScalar();
-
-            if(result == null)
-            {
-                throw new InvalidOperationException("Book not Found.");
-            }
-
-            return Convert.ToInt32(result);
-
-        }
-
         public List<Buch> GetBuecher()
         {
             using var connection = new SqliteConnection(_connStr);
@@ -54,36 +25,27 @@ namespace Bücherverwaltung
             List<Buch> buecher = new();
 
 
-            try
+            Console.WriteLine("Connecting to Database...");
+            connection.Open();
+            Console.WriteLine("Connected");
+
+
+            using var command = connection.CreateCommand();
+            command.CommandText = "SELECT * FROM Buecher";
+
+            using var reader = command.ExecuteReader();
+            while (reader.Read())
             {
-                Console.WriteLine("Connecting to Database...");
-                connection.Open();
-                Console.WriteLine("Connected");
-
-
-                using var command = connection.CreateCommand();
-                command.CommandText = "SELECT Titel, Autor, Preis, Erscheinungsjahr, KategorieId FROM Buecher";
-
-                using var reader = command.ExecuteReader();
-                while (reader.Read())
+                var buch = new Buch
                 {
-                    var buch = new Buch
-                    {
-                        Name = reader.GetString(0),
-                        Autor = reader.GetString(1),
-                        Preis = reader.IsDBNull(2) ? null : Convert.ToDouble(reader.GetDecimal(2)),
-                        Datum = reader.IsDBNull(3) ? null : reader.GetInt32(3),
-                        Kategorie = _kategorieMapper.GetKategorieName(reader.GetInt32(4))
-                    };
-                    buecher.Add(buch);
-                }
-                connection.Close();
-            }
-            catch (Exception ex)
-            {
-                {
-                    Console.WriteLine(ex.Message);
-                }
+                    Id = reader.GetInt32(0),
+                    Name = reader.GetString(1),
+                    Autor = reader.GetString(2),
+                    Preis = reader.IsDBNull(3) ? null : reader.GetDecimal(3),
+                    Datum = reader.IsDBNull(4) ? null : reader.GetInt32(4),
+                    Kategorie = _kategorieMapper.GetKategorieName(reader.GetInt32(5))
+                };
+                buecher.Add(buch);
             }
 
             return buecher;
@@ -96,31 +58,23 @@ namespace Bücherverwaltung
 
             var kategorieId = _kategorieMapper.GetKategorieId(buch.Kategorie);
 
-            try
-            {
-                Console.WriteLine("Connecting to Database...");
-                connection.Open();
-                Console.WriteLine("Connected");
+            Console.WriteLine("Connecting to Database...");
+            connection.Open();
+            Console.WriteLine("Connected");
 
 
-                using var command = connection.CreateCommand();
-                command.CommandText = "INSERT INTO Buecher (Titel, Autor, Preis, Erscheinungsjahr, KategorieId) VALUES (@titel, @autor, @preis, @erscheinungsjahr, @kategorieId)";
+            using var command = connection.CreateCommand();
+            command.CommandText = "INSERT INTO Buecher (Titel, Autor, Preis, Erscheinungsjahr, KategorieId) VALUES (@titel, @autor, @preis, @erscheinungsjahr, @kategorieId)";
 
-                command.Parameters.AddWithValue("@titel", buch.Name);
-                command.Parameters.AddWithValue("@autor", buch.Autor);
-                command.Parameters.AddWithValue("@preis", buch.Preis.HasValue ? buch.Preis : DBNull.Value);
-                command.Parameters.AddWithValue("@erscheinungsjahr", buch.Datum.HasValue ? buch.Datum: DBNull.Value);
-                command.Parameters.AddWithValue("@kategorieId", kategorieId);
+            command.Parameters.AddWithValue("@titel", buch.Name);
+            command.Parameters.AddWithValue("@autor", buch.Autor);
+            command.Parameters.AddWithValue("@preis", buch.Preis.HasValue ? buch.Preis : DBNull.Value);
+            command.Parameters.AddWithValue("@erscheinungsjahr", buch.Datum.HasValue ? buch.Datum: DBNull.Value);
+            command.Parameters.AddWithValue("@kategorieId", kategorieId);
 
-                command.ExecuteNonQuery();
+            command.ExecuteNonQuery();
 
-                Console.WriteLine("Buch gespeichert");
-                connection.Close();
-            }
-            catch(Exception ex)
-            {
-                Console.WriteLine(ex);
-            }
+            Console.WriteLine("Buch gespeichert");
         }
 
         public List<Buch> GetCategoryBooks(string category)
@@ -129,35 +83,26 @@ namespace Bücherverwaltung
 
             List<Buch> buecher = new();
 
-            try
+            connection.Open();
+
+            using var command = connection.CreateCommand();
+            command.CommandText = "SELECT BuecherId, Titel, Autor, Preis, Erscheinungsjahr, KategorieId FROM Buecher WHERE KategorieId = @kategorie";
+
+            command.Parameters.AddWithValue("@kategorie", _kategorieMapper.GetKategorieId(category));
+
+            using var reader = command.ExecuteReader();
+            while (reader.Read())
             {
-                connection.Open();
-
-                using var command = connection.CreateCommand();
-                command.CommandText = "SELECT Titel, Autor, Preis, Erscheinungsjahr, KategorieId FROM Buecher WHERE KategorieId = @kategorie";
-
-                command.Parameters.AddWithValue("@kategorie", _kategorieMapper.GetKategorieId(category));
-
-                using var reader = command.ExecuteReader();
-                while (reader.Read())
+                var buch = new Buch
                 {
-                    var buch = new Buch
-                    {
-                        Name = reader.GetString(0),
-                        Autor = reader.GetString(1),
-                        Preis = reader.IsDBNull(2) ? null : Convert.ToDouble(reader.GetDecimal(2)),
-                        Datum = reader.IsDBNull(3) ? null : reader.GetInt32(3),
-                        Kategorie = _kategorieMapper.GetKategorieName(reader.GetInt32(4))
-                    };
-                    buecher.Add(buch);
-                }
-                connection.Close();
-            }
-            catch (Exception ex)
-            {
-                {
-                    Console.WriteLine(ex.Message);
-                }
+                    Id = reader.GetInt32(0),
+                    Name = reader.GetString(1),
+                    Autor = reader.GetString(2),
+                    Preis = reader.IsDBNull(3) ? null : reader.GetDecimal(3),
+                    Datum = reader.IsDBNull(4) ? null : reader.GetInt32(4),
+                    Kategorie = _kategorieMapper.GetKategorieName(reader.GetInt32(5))
+                };
+                buecher.Add(buch);
             }
 
             return buecher;
@@ -169,27 +114,16 @@ namespace Bücherverwaltung
 
             List<string> categories = new();
 
+            connection.Open();
 
-            try
+
+            using var command = connection.CreateCommand();
+            command.CommandText = "SELECT Name FROM Kategorien";
+
+            using var reader = command.ExecuteReader();
+            while (reader.Read())
             {
-                connection.Open();
-
-
-                using var command = connection.CreateCommand();
-                command.CommandText = "SELECT Name FROM Kategorien";
-
-                using var reader = command.ExecuteReader();
-                while (reader.Read())
-                {
-                    categories.Add(reader.GetString(0));
-                }
-                connection.Close();
-            }
-            catch (Exception ex)
-            {
-                {
-                    Console.WriteLine(ex.Message);
-                }
+                categories.Add(reader.GetString(0));
             }
 
             return categories;
@@ -197,40 +131,43 @@ namespace Bücherverwaltung
 
         public void EditBook(int bookId, Buch neuesBuch)
         {
+            using var connection = new SqliteConnection(_connStr);
 
-            try
-            {
-                using var connection = new SqliteConnection(_connStr);
+            connection.Open();
 
-                using var command = connection.CreateCommand();
-                command.CommandText = "UPDATE Buecher SET Titel = @titel, Autor = @autor, Preis = @preis, Erscheinungsjahr = @jahr, KategorieId = @kategorie WHERE BuecherId = @id";
+            using var command = connection.CreateCommand();
+            command.CommandText = "UPDATE Buecher SET Titel = @titel, Autor = @autor, Preis = @preis, Erscheinungsjahr = @erscheinungsjahr, KategorieId = @kategorieId WHERE BuecherId = @id";
 
-                command.Parameters.AddWithValue("@titel", neuesBuch.Name);
-                command.Parameters.AddWithValue("@autor", neuesBuch.Autor);
-                command.Parameters.AddWithValue("@preis", neuesBuch.Preis.HasValue ? neuesBuch.Preis : DBNull.Value);
-                command.Parameters.AddWithValue("@erscheinungsjahr", neuesBuch.Datum.HasValue ? neuesBuch.Datum : DBNull.Value);
-                command.Parameters.AddWithValue("@kategorieId", _kategorieMapper.GetKategorieId(neuesBuch.Kategorie));
-                command.Parameters.AddWithValue("@id", bookId);
+            command.Parameters.AddWithValue("@titel", neuesBuch.Name);
+            command.Parameters.AddWithValue("@autor", neuesBuch.Autor);
+            command.Parameters.AddWithValue("@preis", neuesBuch.Preis.HasValue ? neuesBuch.Preis : DBNull.Value);
+            command.Parameters.AddWithValue("@erscheinungsjahr", neuesBuch.Datum.HasValue ? neuesBuch.Datum : DBNull.Value);
+            command.Parameters.AddWithValue("@kategorieId", _kategorieMapper.GetKategorieId(neuesBuch.Kategorie));
+            command.Parameters.AddWithValue("@id", bookId);
 
-                command.ExecuteNonQuery();
-                connection.Close();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
+            command.ExecuteNonQuery();
         }
 
         public void DeleteBook(int bookId)
         {
             using var connection = new SqliteConnection(_connStr);
 
+            connection.Open();
+
             using var command = connection.CreateCommand();
             command.CommandText = "DELETE FROM Buecher WHERE BuecherId = @id";
             command.Parameters.AddWithValue("@id", bookId);
 
             command.ExecuteNonQuery();
-            connection.Close();
+        }
+
+        public List<Buch> SearchBooks(string suchbegriff)
+        {
+            return GetBuecher()
+                .Where(b =>
+                    b.Name.Contains(suchbegriff, StringComparison.OrdinalIgnoreCase) ||
+                    b.Autor.Contains(suchbegriff, StringComparison.OrdinalIgnoreCase))
+                .ToList();
         }
     }
 }

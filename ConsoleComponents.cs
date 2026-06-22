@@ -57,7 +57,7 @@ namespace Bücherverwaltung
                 var choice = AnsiConsole.Prompt(
                     new SelectionPrompt<string>()
                         .Title("")
-                        .AddChoices("Bücher verwalten", "Bücher anzeigen", "Beenden"));
+                        .AddChoices("Bücher verwalten", "Bücher anzeigen", "Suche", "Beenden"));
 
 
                 switch (choice)
@@ -67,6 +67,9 @@ namespace Bücherverwaltung
                         break;
                     case "Bücher anzeigen":
                         ShowBooks(_buecherService.GetBuecher().OrderBy(b => b.Kategorie).ToList());
+                        break;
+                    case "Suche":
+                        SearchBook(); 
                         break;
                     case "Beenden":
                         return;
@@ -132,7 +135,7 @@ namespace Bücherverwaltung
         {
             var titel = AnsiConsole.Ask<string>("Titel");
             var autor = AnsiConsole.Ask<string>("Autor");
-            var preis = AnsiConsole.Prompt(new TextPrompt<double?>("Preis [grey](optional)[/]").DefaultValue(null).AllowEmpty());
+            var preis = AnsiConsole.Prompt(new TextPrompt<decimal?>("Preis [grey](optional)[/]").DefaultValue(null).AllowEmpty());
             var datum = AnsiConsole.Prompt(new TextPrompt<int?>("Erscheinungsjahr [grey](optional)[/]").DefaultValue(null).AllowEmpty());
             var kategorie = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
@@ -175,6 +178,19 @@ namespace Bücherverwaltung
             {
                 AnsiConsole.MarkupLine("[yellow]Abgebrochen.[/]");
             }
+        }
+
+        public void SearchBook()
+        {
+            var suchbegriff = AnsiConsole.Ask<string>("Suchbegriff:");
+
+            var treffer = _buecherService.SearchBooks(suchbegriff);
+
+            var buch = AnsiConsole.Prompt(
+                new SelectionPrompt<Buch>()
+                    .Title("Buch auswählen")
+                    .UseConverter(b => $"{b.Name} - {b.Autor}")
+                    .AddChoices(treffer));
         }
     }
 }
