@@ -1,6 +1,4 @@
 ﻿using Microsoft.Data.Sqlite;
-using MySqlConnector;
-using System.Xml.Linq;
 
 
 namespace Bücherverwaltung
@@ -18,6 +16,35 @@ namespace Bücherverwaltung
             _sqliteDbPath = dbPath;
             _connStr = $"Data Source={_sqliteDbPath}";
             _kategorieMapper = new KategorieMapper(_sqliteDbPath);
+        }
+
+        public int GetBookId(Buch buch)
+        {
+            using var connection = new SqliteConnection(_connStr);
+
+            Console.WriteLine("Connecting to Database...");
+            connection.Open();
+            Console.WriteLine("Connected");
+
+
+            using var command = connection.CreateCommand();
+            command.CommandText = "SELECT BuecherId FROM Buecher WHERE Titel = @titel AND Autor = @autor AND Preis = @preis AND Erscheinungsjahr = @erscheinungsjahr AND KategorieId = @kategorieId";
+
+            command.Parameters.AddWithValue("@titel", buch.Name);
+            command.Parameters.AddWithValue("@autor", buch.Autor);
+            command.Parameters.AddWithValue("@preis", buch.Preis.HasValue ? buch.Preis : DBNull.Value);
+            command.Parameters.AddWithValue("@erscheinungsjahr", buch.Datum.HasValue ? buch.Datum : DBNull.Value);
+            command.Parameters.AddWithValue("@kategorieId", _kategorieMapper.GetKategorieId(buch.Kategorie));
+                
+            var result =command.ExecuteScalar();
+
+            if(result == null)
+            {
+                throw new InvalidOperationException("Book not Found.");
+            }
+
+            return Convert.ToInt32(result);
+
         }
 
         public List<Buch> GetBuecher()
