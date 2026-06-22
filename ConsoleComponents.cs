@@ -52,19 +52,19 @@ namespace Bücherverwaltung
                 var choice = AnsiConsole.Prompt(
                     new SelectionPrompt<string>()
                         .Title("")
-                        .AddChoices("Bücher verwalten", "Bücher anzeigen", "Suche", "Beenden"));
+                        .AddChoices("Suche", "Bücher anzeigen", "Bücher verwalten", "Beenden"));
 
 
                 switch (choice)
                 {
-                    case "Bücher verwalten":
-                        ShowManagement();
+                    case "Suche":
+                        SearchBook(); 
                         break;
                     case "Bücher anzeigen":
                         ShowBooks(_buecherService.GetBuecher().OrderBy(b => b.Kategorie).ToList());
                         break;
-                    case "Suche":
-                        SearchBook(); 
+                    case "Bücher verwalten":
+                        ShowManagement();
                         break;
                     case "Beenden":
                         return;
