@@ -4,19 +4,16 @@ namespace BookVault
 {
     public class CategoryMapper
     {
-        private readonly string _sqliteDbPath;
+        private readonly SqliteConnection _connection;
 
-        public CategoryMapper(string sqliteDbPath)
+        public CategoryMapper(SqliteConnection connection)
         {
-            _sqliteDbPath = sqliteDbPath;
+            _connection = connection;
         }
 
         public int GetCategoryId(string name)
         {
-            using var connection = new SqliteConnection($"Data Source={_sqliteDbPath}");
-            connection.Open();
-
-            using var command = connection.CreateCommand();
+            using var command = _connection.CreateCommand();
             command.CommandText = "SELECT CategoryId FROM Categories WHERE Name = @name";
             command.Parameters.AddWithValue("@name", name);
 
@@ -29,10 +26,7 @@ namespace BookVault
 
         public string GetCategoryName(int id)
         {
-            using var connection = new SqliteConnection($"Data Source={_sqliteDbPath}");
-            connection.Open();
-
-            using var command = connection.CreateCommand();
+            using var command = _connection.CreateCommand();
             command.CommandText = "SELECT Name FROM Categories WHERE CategoryId = @id";
             command.Parameters.AddWithValue("@id", id);
 

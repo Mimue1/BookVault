@@ -80,7 +80,7 @@ namespace BookVault
             table.AddColumn("[bold]Title[/]");
             table.AddColumn("[bold]Author[/]");
             table.AddColumn("[bold]Price[/]");
-            table.AddColumn("[bold]Date[/]");
+            table.AddColumn("[bold]Year[/]");
             table.AddColumn("[bold]Category[/]");
 
             foreach (var b in books)
@@ -89,7 +89,7 @@ namespace BookVault
                     b.Name ?? "-",
                     b.Author ?? "-",
                     b.Price.HasValue ? $"[green]{b.Price.Value:0.00}[/]" : "[grey]-[/]",
-                    b.Date.HasValue ? $"[blue]{b.Date}[/]" : "[grey]-[/]",
+                    b.Year.HasValue ? $"[blue]{b.Year}[/]" : "[grey]-[/]",
                     b.Category ?? "-"
                 );
             }
@@ -132,7 +132,7 @@ namespace BookVault
             var title = AnsiConsole.Ask<string>("Title");
             var author = AnsiConsole.Ask<string>("Author");
             var price = AnsiConsole.Prompt(new TextPrompt<decimal?>("Price [grey](optional)[/]").DefaultValue(null).AllowEmpty());
-            var date = AnsiConsole.Prompt(new TextPrompt<int?>("Year of Publication [grey](optional)[/]").DefaultValue(null).AllowEmpty());
+            var year = AnsiConsole.Prompt(new TextPrompt<int?>("Year of Publication [grey](optional)[/]").DefaultValue(null).AllowEmpty());
             var category = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
                     .Title("Category")
@@ -144,7 +144,7 @@ namespace BookVault
                 Name = title,
                 Author = author,
                 Price = price,
-                Date = date,
+                Year = year,
                 Category = category
             };
 
@@ -154,7 +154,7 @@ namespace BookVault
                     new Markup($"[bold]Title:[/] {book.Name}"),
                     new Markup($"[bold]Author:[/] {book.Author}"),
                     new Markup($"[bold]Price:[/] {(book.Price.HasValue ? book.Price : "-")}"),
-                    new Markup($"[bold]Year of Publication:[/] {(book.Date.HasValue ? book.Date : "-")}"),
+                    new Markup($"[bold]Year of Publication:[/] {(book.Year.HasValue ? book.Year : "-")}"),
                     new Markup($"[bold]Category:[/] {book.Category}")))
             .Header("[yellow]Summary[/]")
             .Border(BoxBorder.Rounded);
@@ -199,7 +199,7 @@ namespace BookVault
                 new Markup($"[bold]Title:[/] {book.Name}"),
                 new Markup($"[bold]Author:[/] {book.Author}"),
                 new Markup($"[bold]Price:[/] {(book.Price.HasValue ? book.Price : "-")}"),
-                new Markup($"[bold]Year of Publication:[/] {(book.Date.HasValue ? book.Date : "-")}"),
+                new Markup($"[bold]Year of Publication:[/] {(book.Year.HasValue ? book.Year : "-")}"),
                 new Markup($"[bold]Category:[/] {book.Category}")))
             .Header($"[yellow]{book.Name}:[/]");
             AnsiConsole.Write(panel);
@@ -233,7 +233,7 @@ namespace BookVault
                 Name = book.Name,
                 Author = book.Author,
                 Price = book.Price,
-                Date = book.Date,
+                Year = book.Year,
                 Category = book.Category
             };
 
@@ -277,9 +277,9 @@ namespace BookVault
                         break;
 
                     case "Year of Publication":
-                        workingCopy.Date = AnsiConsole.Prompt(
+                        workingCopy.Year = AnsiConsole.Prompt(
                             new TextPrompt<int?>("New Year:")
-                                .DefaultValue(workingCopy.Date)
+                                .DefaultValue(workingCopy.Year)
                                 .AllowEmpty());
                         break;
 
@@ -311,7 +311,7 @@ namespace BookVault
                     new Markup($"[bold]Title:[/] {b.Name}"),
                     new Markup($"[bold]Author:[/] {b.Author}"),
                     new Markup($"[bold]Price:[/] {(b.Price.HasValue ? b.Price.ToString() : "-")}"),
-                    new Markup($"[bold]Year:[/] {(b.Date.HasValue ? b.Date.ToString() : "-")}"),
+                    new Markup($"[bold]Year:[/] {(b.Year.HasValue ? b.Year.ToString() : "-")}"),
                     new Markup($"[bold]Category:[/] {b.Category}")
                 ))
                 .Header("[yellow]Edit Preview[/]");

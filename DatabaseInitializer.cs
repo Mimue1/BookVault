@@ -28,7 +28,7 @@ public static class DatabaseInitializer
                 Title TEXT NOT NULL,
                 Author TEXT NOT NULL,
                 Price REAL,
-                Date INTEGER,
+                Year INTEGER,
                 CategoryId INTEGER NOT NULL,
                 FOREIGN KEY (CategoryId) REFERENCES Categories(CategoryId)
             );
