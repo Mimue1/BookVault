@@ -269,7 +269,7 @@ namespace BookVault
                             "New Author:", workingCopy.Author);
                         break;
 
-                    case "Preis":
+                    case "Price":
                         workingCopy.Price = AnsiConsole.Prompt(
                             new TextPrompt<decimal?>("New Price:")
                                 .DefaultValue(workingCopy.Price)

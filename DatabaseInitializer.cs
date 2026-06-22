@@ -2,16 +2,10 @@
 
 public static class DatabaseInitializer
 {
-    private static readonly string DbPath = Path.Combine(AppContext.BaseDirectory, "books.db");
-    private static readonly string ConnectionString = $"Data Source={DbPath}";
-
-    public static void Initialize()
+    public static void Initialize(SqliteConnection connection)
     {
-        using var connection = new SqliteConnection(ConnectionString);
-        connection.Open();
-
         CreateTables(connection);
-        SeedKategorien(connection);
+        SeedCategories(connection);
     }
 
     private static void CreateTables(SqliteConnection connection)
@@ -36,9 +30,9 @@ public static class DatabaseInitializer
         cmd.ExecuteNonQuery();
     }
 
-    private static void SeedKategorien(SqliteConnection connection)
+    private static void SeedCategories(SqliteConnection connection)
     {
-        var kategorien = new (int Id, string Name)[]
+        var categories = new (int Id, string Name)[]
         {
             (1, "Wishlist"),
             (2, "Queue"),
@@ -46,7 +40,7 @@ public static class DatabaseInitializer
             (4, "Read")
         };
 
-        foreach (var (id, name) in kategorien)
+        foreach (var (id, name) in categories)
         {
             var cmd = connection.CreateCommand();
             cmd.CommandText = @"

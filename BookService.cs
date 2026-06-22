@@ -43,7 +43,7 @@ namespace BookVault
 
         public void AddBook(Book book)
         {
-            var kategorieId = _categoryMapper.GetCategoryId(book.Category);
+            var categoryId = _categoryMapper.GetCategoryId(book.Category);
             
             using var command = _connection.CreateCommand();
             command.CommandText = "INSERT INTO Books (Title, Author, Price, Year, CategoryId) VALUES (@title, @author, @price, @year, @categoryId)";
@@ -52,7 +52,7 @@ namespace BookVault
             command.Parameters.AddWithValue("@author", book.Author);
             command.Parameters.AddWithValue("@price", book.Price.HasValue ? book.Price : DBNull.Value);
             command.Parameters.AddWithValue("@year", book.Year.HasValue ? book.Year: DBNull.Value);
-            command.Parameters.AddWithValue("@categoryId", kategorieId);
+            command.Parameters.AddWithValue("@categoryId", categoryId);
 
             command.ExecuteNonQuery();
         }
