@@ -2,7 +2,7 @@
 
 public static class DatabaseInitializer
 {
-    private static readonly string DbPath = Path.Combine(AppContext.BaseDirectory, "buecher.db");
+    private static readonly string DbPath = Path.Combine(AppContext.BaseDirectory, "books.db");
     private static readonly string ConnectionString = $"Data Source={DbPath}";
 
     public static void Initialize()
@@ -18,19 +18,19 @@ public static class DatabaseInitializer
     {
         var cmd = connection.CreateCommand();
         cmd.CommandText = @"
-            CREATE TABLE IF NOT EXISTS Kategorien (
-                KategorieId INTEGER PRIMARY KEY AUTOINCREMENT,
+            CREATE TABLE IF NOT EXISTS Categories (
+                CategoryId INTEGER PRIMARY KEY AUTOINCREMENT,
                 Name TEXT NOT NULL UNIQUE
             );
 
-            CREATE TABLE IF NOT EXISTS Buecher (
-                BuecherId INTEGER PRIMARY KEY AUTOINCREMENT,
-                Titel TEXT NOT NULL,
-                Autor TEXT NOT NULL,
-                Preis REAL,
-                Erscheinungsjahr INTEGER,
-                KategorieId INTEGER NOT NULL,
-                FOREIGN KEY (KategorieId) REFERENCES Kategorien(KategorieId)
+            CREATE TABLE IF NOT EXISTS Books (
+                BookId INTEGER PRIMARY KEY AUTOINCREMENT,
+                Title TEXT NOT NULL,
+                Author TEXT NOT NULL,
+                Price REAL,
+                Date INTEGER,
+                CategoryId INTEGER NOT NULL,
+                FOREIGN KEY (CategoryId) REFERENCES Categories(CategoryId)
             );
         ";
         cmd.ExecuteNonQuery();
@@ -50,9 +50,9 @@ public static class DatabaseInitializer
         {
             var cmd = connection.CreateCommand();
             cmd.CommandText = @"
-                INSERT INTO Kategorien (KategorieId, Name)
+                INSERT INTO Categories (CategoryId, Name)
                 SELECT $id, $name
-                WHERE NOT EXISTS (SELECT 1 FROM Kategorien WHERE KategorieId = $id);
+                WHERE NOT EXISTS (SELECT 1 FROM Categories WHERE CategoryId = $id);
             ";
             cmd.Parameters.AddWithValue("$id", id);
             cmd.Parameters.AddWithValue("$name", name);

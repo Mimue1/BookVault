@@ -50,54 +50,54 @@ namespace BookVault
                 var choice = AnsiConsole.Prompt(
                     new SelectionPrompt<string>()
                         .Title("")
-                        .AddChoices("Suche", "Bücher anzeigen", "Bücher verwalten", "Beenden"));
+                        .AddChoices("Search", "All Books", "Manage Books", "Exit"));
 
 
                 switch (choice)
                 {
-                    case "Suche":
+                    case "Search":
                         SearchBook(); 
                         break;
-                    case "Bücher anzeigen":
-                        ShowBooks(_bookService.GetBooks().OrderBy(b => b.Kategorie).ToList());
+                    case "All Books":
+                        ShowBooks(_bookService.GetBooks().OrderBy(b => b.Category).ToList());
                         break;
-                    case "Bücher verwalten":
+                    case "Manage Books":
                         ShowManagement();
                         break;
-                    case "Beenden":
+                    case "Exit":
                         return;
                 }
             }
         }
 
-        public void ShowBooks(List<Book> buecher)
+        public void ShowBooks(List<Book> books)
         {
             Console.Clear();
             ShowHeader();
 
             var table = new Table().Expand();
 
-            table.AddColumn("[bold]Titel[/]");
-            table.AddColumn("[bold]Autor[/]");
-            table.AddColumn("[bold]Preis[/]");
-            table.AddColumn("[bold]Erscheinungsjahr[/]");
-            table.AddColumn("[bold]Kategorie[/]");
+            table.AddColumn("[bold]Title[/]");
+            table.AddColumn("[bold]Author[/]");
+            table.AddColumn("[bold]Price[/]");
+            table.AddColumn("[bold]Date[/]");
+            table.AddColumn("[bold]Category[/]");
 
-            foreach (var b in buecher)
+            foreach (var b in books)
             {
                 table.AddRow(
                     b.Name ?? "-",
-                    b.Autor ?? "-",
-                    b.Preis.HasValue ? $"[green]{b.Preis.Value:0.00}[/]" : "[grey]-[/]",
-                    b.Datum.HasValue ? $"[blue]{b.Datum}[/]" : "[grey]-[/]",
-                    b.Kategorie ?? "-"
+                    b.Author ?? "-",
+                    b.Price.HasValue ? $"[green]{b.Price.Value:0.00}[/]" : "[grey]-[/]",
+                    b.Date.HasValue ? $"[blue]{b.Date}[/]" : "[grey]-[/]",
+                    b.Category ?? "-"
                 );
             }
 
             AnsiConsole.Write(table);
 
             AnsiConsole.WriteLine();
-            AnsiConsole.MarkupLine("[grey]Drücke eine Taste um zurück zu gehen...[/]");
+            AnsiConsole.MarkupLine("[grey]Press any Key to return...[/]");
             Console.ReadKey();
         }
 
@@ -105,23 +105,23 @@ namespace BookVault
         {
             var choice = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
-                    .Title("Bitte wähle eine Aktion aus:")
-                    .AddChoices("Buch Hinzufügen", "Buch Bearbeiten", "Buch Löschen", "Zurück"));
+                    .Title("Choose an Option:")
+                    .AddChoices("Add", "Edit", "Delete", "Back"));
 
 
             switch (choice)
             {
-                case "Buch Hinzufügen":
+                case "Add":
                     AddBook();
                     break;
-                case "Buch Bearbeiten":
+                case "Edit":
                     EditBook();
                     break;
-                case "Buch Löschen":
-                    var buch = SearchBook();
-                    if(buch != null) DeleteBook(buch);
+                case "Delete":
+                    var book = SearchBook();
+                    if(book != null) DeleteBook(book);
                     break;
-                case "Zurück":
+                case "Back":
                     App();
                     break;
             }
@@ -129,93 +129,93 @@ namespace BookVault
 
         public void AddBook()
         {
-            var titel = AnsiConsole.Ask<string>("Titel");
-            var autor = AnsiConsole.Ask<string>("Autor");
-            var preis = AnsiConsole.Prompt(new TextPrompt<decimal?>("Preis [grey](optional)[/]").DefaultValue(null).AllowEmpty());
-            var datum = AnsiConsole.Prompt(new TextPrompt<int?>("Erscheinungsjahr [grey](optional)[/]").DefaultValue(null).AllowEmpty());
-            var kategorie = AnsiConsole.Prompt(
+            var title = AnsiConsole.Ask<string>("Title");
+            var author = AnsiConsole.Ask<string>("Author");
+            var price = AnsiConsole.Prompt(new TextPrompt<decimal?>("Price [grey](optional)[/]").DefaultValue(null).AllowEmpty());
+            var date = AnsiConsole.Prompt(new TextPrompt<int?>("Year of Publication [grey](optional)[/]").DefaultValue(null).AllowEmpty());
+            var category = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
-                    .Title("Kategorie")
+                    .Title("Category")
                     .AddChoices(_bookService.GetCategories())
             );
 
-            Book buch = new()
+            Book book = new()
             {
-                Name = titel,
-                Autor = autor,
-                Preis = preis,
-                Datum = datum,
-                Kategorie = kategorie
+                Name = title,
+                Author = author,
+                Price = price,
+                Date = date,
+                Category = category
             };
 
             AnsiConsole.WriteLine();
             var panel = new Panel(
                 new Rows(
-                    new Markup($"[bold]Titel:[/] {buch.Name}"),
-                    new Markup($"[bold]Autor:[/] {buch.Autor}"),
-                    new Markup($"[bold]Preis:[/] {(buch.Preis.HasValue ? buch.Preis : "-")}"),
-                    new Markup($"[bold]Erscheinungsjahr:[/] {(buch.Datum.HasValue ? buch.Datum : "-")}"),
-                    new Markup($"[bold]Kategorie:[/] {buch.Kategorie}")))
+                    new Markup($"[bold]Title:[/] {book.Name}"),
+                    new Markup($"[bold]Author:[/] {book.Author}"),
+                    new Markup($"[bold]Price:[/] {(book.Price.HasValue ? book.Price : "-")}"),
+                    new Markup($"[bold]Year of Publication:[/] {(book.Date.HasValue ? book.Date : "-")}"),
+                    new Markup($"[bold]Category:[/] {book.Category}")))
             .Header("[yellow]Summary[/]")
             .Border(BoxBorder.Rounded);
             AnsiConsole.Write(panel);
             AnsiConsole.WriteLine();
 
 
-            if (AnsiConsole.Confirm("Buch Hinzufügen?"))
+            if (AnsiConsole.Confirm("Do you want tho add this Book?"))
             {
-                _bookService.AddBook(buch);
-                AnsiConsole.MarkupLine($"[green]Das Buch {buch.Name} wurde Hinzugefügt![/]");
+                _bookService.AddBook(book);
+                AnsiConsole.MarkupLine($"[green]{book.Name} was added![/]");
                 AnsiConsole.WriteLine();
-                AnsiConsole.MarkupLine("[grey]Drücke eine Taste um zurück zu gehen...[/]");
+                AnsiConsole.MarkupLine("[grey]Press any Key to return...[/]");
                 Console.ReadKey();
             }
             else
             {
-                AnsiConsole.MarkupLine("[yellow]Abgebrochen.[/]");
+                AnsiConsole.MarkupLine("[yellow]Canceled.[/]");
             }
         }
 
         public Book? SearchBook()
         {
-            var suchbegriff = AnsiConsole.Prompt(new TextPrompt<string>("Suchbegriff(Enter = Alle):").AllowEmpty());
-            var treffer = suchbegriff == string.Empty ? _bookService.GetBooks() : _bookService.SearchBooks(suchbegriff);
-            if (!treffer.Any())
+            var query = AnsiConsole.Prompt(new TextPrompt<string>("Search(Enter = All):").AllowEmpty());
+            var result = query == string.Empty ? _bookService.GetBooks() : _bookService.SearchBooks(query);
+            if (!result.Any())
             {
-                AnsiConsole.MarkupLine("[yellow]Keine Treffer gefunden.[/]");
-                AnsiConsole.MarkupLine("[grey]Drücke eine Taste um zurück zu gehen...[/]");
+                AnsiConsole.MarkupLine("[yellow]Not Found.[/]");
+                AnsiConsole.MarkupLine("[grey]Press any Key to return...[/]");
                 Console.ReadKey();
                 return null;
             }
 
-            var buch = AnsiConsole.Prompt(
+            var book = AnsiConsole.Prompt(
                 new SelectionPrompt<Book>()
-                    .Title("Buch auswählen")
-                    .UseConverter(b => $"{b.Name} - {b.Autor}")
-                    .AddChoices(treffer));
+                    .Title("Choose Book")
+                    .UseConverter(b => $"{b.Name} - {b.Author}")
+                    .AddChoices(result));
 
             var panel = new Panel(
             new Rows(
-                new Markup($"[bold]Titel:[/] {buch.Name}"),
-                new Markup($"[bold]Autor:[/] {buch.Autor}"),
-                new Markup($"[bold]Preis:[/] {(buch.Preis.HasValue ? buch.Preis : "-")}"),
-                new Markup($"[bold]Erscheinungsjahr:[/] {(buch.Datum.HasValue ? buch.Datum : "-")}"),
-                new Markup($"[bold]Kategorie:[/] {buch.Kategorie}")))
-            .Header($"[yellow]{buch.Name}:[/]");
+                new Markup($"[bold]Title:[/] {book.Name}"),
+                new Markup($"[bold]Author:[/] {book.Author}"),
+                new Markup($"[bold]Price:[/] {(book.Price.HasValue ? book.Price : "-")}"),
+                new Markup($"[bold]Year of Publication:[/] {(book.Date.HasValue ? book.Date : "-")}"),
+                new Markup($"[bold]Category:[/] {book.Category}")))
+            .Header($"[yellow]{book.Name}:[/]");
             AnsiConsole.Write(panel);
             Console.ReadKey();
-            return buch;
+            return book;
         }
 
-        public void DeleteBook(Book buch)
+        public void DeleteBook(Book book)
         {
-            AnsiConsole.MarkupLine($"[red]{buch.Name} wird gelöscht:[/]");
+            AnsiConsole.MarkupLine($"[red]Deleted {book.Name}...:[/]");
 
-            var confirmDelete = AnsiConsole.Confirm($"Möchten Sie dieses Buch wirklich löschen?", defaultValue: false);
+            var confirmDelete = AnsiConsole.Confirm($"Do you want to delete {book.Name}?", defaultValue: false);
 
             if(confirmDelete)
             {
-                _bookService.DeleteBook(buch.Id);
+                _bookService.DeleteBook(book.Id);
             }
 
             return;
@@ -224,17 +224,17 @@ namespace BookVault
 
         public void EditBook()
         {
-            var buch = SearchBook();
-            if (buch == null) return;
+            var book = SearchBook();
+            if (book == null) return;
 
             var workingCopy = new Book
             {
-                Id = buch.Id,
-                Name = buch.Name,
-                Autor = buch.Autor,
-                Preis = buch.Preis,
-                Datum = buch.Datum,
-                Kategorie = buch.Kategorie
+                Id = book.Id,
+                Name = book.Name,
+                Author = book.Author,
+                Price = book.Price,
+                Date = book.Date,
+                Category = book.Category
             };
 
             while (true)
@@ -246,58 +246,58 @@ namespace BookVault
 
                 var choice = AnsiConsole.Prompt(
                     new SelectionPrompt<string>()
-                        .Title("Was möchtest du ändern?")
+                        .Title("Choose")
                         .AddChoices(
-                            "Titel",
-                            "Autor",
-                            "Preis",
-                            "Erscheinungsjahr",
-                            "Kategorie",
-                            "Speichern",
-                            "Abbrechen"
+                            "Title",
+                            "Author",
+                            "Price",
+                            "Year of Publication",
+                            "Category",
+                            "Save",
+                            "Cancel"
                         ));
 
                 switch (choice)
                 {
-                    case "Titel":
+                    case "Title":
                         workingCopy.Name = AnsiConsole.Ask<string>(
-                            "Neuer Titel:", workingCopy.Name);
+                            "New Title:", workingCopy.Name);
                         break;
 
-                    case "Autor":
-                        workingCopy.Autor = AnsiConsole.Ask<string>(
-                            "Neuer Autor:", workingCopy.Autor);
+                    case "Author":
+                        workingCopy.Author = AnsiConsole.Ask<string>(
+                            "New Author:", workingCopy.Author);
                         break;
 
                     case "Preis":
-                        workingCopy.Preis = AnsiConsole.Prompt(
-                            new TextPrompt<decimal?>("Neuer Preis:")
-                                .DefaultValue(workingCopy.Preis)
+                        workingCopy.Price = AnsiConsole.Prompt(
+                            new TextPrompt<decimal?>("New Price:")
+                                .DefaultValue(workingCopy.Price)
                                 .AllowEmpty());
                         break;
 
-                    case "Erscheinungsjahr":
-                        workingCopy.Datum = AnsiConsole.Prompt(
-                            new TextPrompt<int?>("Neues Jahr:")
-                                .DefaultValue(workingCopy.Datum)
+                    case "Year of Publication":
+                        workingCopy.Date = AnsiConsole.Prompt(
+                            new TextPrompt<int?>("New Year:")
+                                .DefaultValue(workingCopy.Date)
                                 .AllowEmpty());
                         break;
 
-                    case "Kategorie":
-                        workingCopy.Kategorie = AnsiConsole.Prompt(
+                    case "Category":
+                        workingCopy.Category = AnsiConsole.Prompt(
                             new SelectionPrompt<string>()
-                                .Title("Neue Kategorie")
+                                .Title("New Category")
                                 .AddChoices(_bookService.GetCategories()));
                         break;
 
-                    case "Speichern":
-                        _bookService.EditBook(buch.Id, workingCopy);
-                        AnsiConsole.MarkupLine("[green]Änderungen gespeichert[/]");
+                    case "Save":
+                        _bookService.EditBook(book.Id, workingCopy);
+                        AnsiConsole.MarkupLine("[green]Saved...[/]");
                         Console.ReadKey();
                         return;
 
-                    case "Abbrechen":
-                        AnsiConsole.MarkupLine("[yellow]Abgebrochen[/]");
+                    case "Cancel":
+                        AnsiConsole.MarkupLine("[yellow]Canceled[/]");
                         Console.ReadKey();
                         return;
                 }
@@ -308,11 +308,11 @@ namespace BookVault
         {
             var panel = new Panel(
                 new Rows(
-                    new Markup($"[bold]Titel:[/] {b.Name}"),
-                    new Markup($"[bold]Autor:[/] {b.Autor}"),
-                    new Markup($"[bold]Preis:[/] {(b.Preis.HasValue ? b.Preis.ToString() : "-")}"),
-                    new Markup($"[bold]Jahr:[/] {(b.Datum.HasValue ? b.Datum.ToString() : "-")}"),
-                    new Markup($"[bold]Kategorie:[/] {b.Kategorie}")
+                    new Markup($"[bold]Title:[/] {b.Name}"),
+                    new Markup($"[bold]Author:[/] {b.Author}"),
+                    new Markup($"[bold]Price:[/] {(b.Price.HasValue ? b.Price.ToString() : "-")}"),
+                    new Markup($"[bold]Year:[/] {(b.Date.HasValue ? b.Date.ToString() : "-")}"),
+                    new Markup($"[bold]Category:[/] {b.Category}")
                 ))
                 .Header("[yellow]Edit Preview[/]");
             AnsiConsole.Write(panel);

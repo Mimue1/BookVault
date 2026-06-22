@@ -2,10 +2,10 @@
 
 DatabaseInitializer.Initialize();
 
-var dbPath = Path.Combine(AppContext.BaseDirectory, "buecher.db");
+var dbPath = Path.Combine(AppContext.BaseDirectory, "books.db");
 
-BookService buecherService = new BookService(dbPath);
-ConsoleComponents consoleComponents = new(buecherService);
+BookService bookService = new BookService(dbPath);
+ConsoleComponents consoleComponents = new(bookService);
 
 consoleComponents.App();
 

@@ -27,7 +27,7 @@ namespace BookVault
             connection.Open();
 
             using var command = connection.CreateCommand();
-            command.CommandText = "SELECT * FROM Buecher";
+            command.CommandText = "SELECT * FROM Books";
 
             using var reader = command.ExecuteReader();
             while (reader.Read())
@@ -36,10 +36,10 @@ namespace BookVault
                 {
                     Id = reader.GetInt32(0),
                     Name = reader.GetString(1),
-                    Autor = reader.GetString(2),
-                    Preis = reader.IsDBNull(3) ? null : reader.GetDecimal(3),
-                    Datum = reader.IsDBNull(4) ? null : reader.GetInt32(4),
-                    Kategorie = _categoryMapper.GetCategoryName(reader.GetInt32(5))
+                    Author = reader.GetString(2),
+                    Price = reader.IsDBNull(3) ? null : reader.GetDecimal(3),
+                    Date = reader.IsDBNull(4) ? null : reader.GetInt32(4),
+                    Category = _categoryMapper.GetCategoryName(reader.GetInt32(5))
                 };
                 books.Add(book);
             }
@@ -52,22 +52,20 @@ namespace BookVault
 
             using var connection = new SqliteConnection(_connStr);
 
-            var kategorieId = _categoryMapper.GeCategoryId(book.Kategorie);
-
+            var kategorieId = _categoryMapper.GetCategoryId(book.Category);
+            
             connection.Open();
 
             using var command = connection.CreateCommand();
-            command.CommandText = "INSERT INTO Buecher (Titel, Autor, Preis, Erscheinungsjahr, KategorieId) VALUES (@titel, @autor, @preis, @erscheinungsjahr, @kategorieId)";
+            command.CommandText = "INSERT INTO Books (Title, Author, Price, Date, CategoryId) VALUES (@title, @author, @price, @date, @categoryId)";
 
-            command.Parameters.AddWithValue("@titel", book.Name);
-            command.Parameters.AddWithValue("@autor", book.Autor);
-            command.Parameters.AddWithValue("@preis", book.Preis.HasValue ? book.Preis : DBNull.Value);
-            command.Parameters.AddWithValue("@erscheinungsjahr", book.Datum.HasValue ? book.Datum: DBNull.Value);
-            command.Parameters.AddWithValue("@kategorieId", kategorieId);
+            command.Parameters.AddWithValue("@title", book.Name);
+            command.Parameters.AddWithValue("@author", book.Author);
+            command.Parameters.AddWithValue("@price", book.Price.HasValue ? book.Price : DBNull.Value);
+            command.Parameters.AddWithValue("@date", book.Date.HasValue ? book.Date: DBNull.Value);
+            command.Parameters.AddWithValue("@categoryId", kategorieId);
 
             command.ExecuteNonQuery();
-
-            Console.WriteLine("Buch gespeichert");
         }
 
         public List<Book> GetCategoryBooks(string category)
@@ -79,9 +77,9 @@ namespace BookVault
             connection.Open();
 
             using var command = connection.CreateCommand();
-            command.CommandText = "SELECT BuecherId, Titel, Autor, Preis, Erscheinungsjahr, KategorieId FROM Buecher WHERE KategorieId = @kategorie";
+            command.CommandText = "SELECT BookId, Title, Author, Price, Date, CategoryId FROM Books WHERE CategoryId = @category";
 
-            command.Parameters.AddWithValue("@kategorie", _categoryMapper.GeCategoryId(category));
+            command.Parameters.AddWithValue("@category", _categoryMapper.GetCategoryId(category));
 
             using var reader = command.ExecuteReader();
             while (reader.Read())
@@ -90,10 +88,10 @@ namespace BookVault
                 {
                     Id = reader.GetInt32(0),
                     Name = reader.GetString(1),
-                    Autor = reader.GetString(2),
-                    Preis = reader.IsDBNull(3) ? null : reader.GetDecimal(3),
-                    Datum = reader.IsDBNull(4) ? null : reader.GetInt32(4),
-                    Kategorie = _categoryMapper.GetCategoryName(reader.GetInt32(5))
+                    Author = reader.GetString(2),
+                    Price = reader.IsDBNull(3) ? null : reader.GetDecimal(3),
+                    Date = reader.IsDBNull(4) ? null : reader.GetInt32(4),
+                    Category = _categoryMapper.GetCategoryName(reader.GetInt32(5))
                 };
                 books.Add(book);
             }
@@ -111,7 +109,7 @@ namespace BookVault
 
 
             using var command = connection.CreateCommand();
-            command.CommandText = "SELECT Name FROM Kategorien";
+            command.CommandText = "SELECT Name FROM Categories";
 
             using var reader = command.ExecuteReader();
             while (reader.Read())
@@ -129,13 +127,13 @@ namespace BookVault
             connection.Open();
 
             using var command = connection.CreateCommand();
-            command.CommandText = "UPDATE Buecher SET Titel = @titel, Autor = @autor, Preis = @preis, Erscheinungsjahr = @erscheinungsjahr, KategorieId = @kategorieId WHERE BuecherId = @id";
+            command.CommandText = "UPDATE Books SET Title = @title, Author = @author, Price = @price, Date = @date , CategoryId = @categoryId WHERE BookId = @id";
 
-            command.Parameters.AddWithValue("@titel", newBook.Name);
-            command.Parameters.AddWithValue("@autor", newBook.Autor);
-            command.Parameters.AddWithValue("@preis", newBook.Preis.HasValue ? newBook.Preis : DBNull.Value);
-            command.Parameters.AddWithValue("@erscheinungsjahr", newBook.Datum.HasValue ? newBook.Datum : DBNull.Value);
-            command.Parameters.AddWithValue("@kategorieId", _categoryMapper.GeCategoryId(newBook.Kategorie));
+            command.Parameters.AddWithValue("@title", newBook.Name);
+            command.Parameters.AddWithValue("@author", newBook.Author);
+            command.Parameters.AddWithValue("@price", newBook.Price.HasValue ? newBook.Price : DBNull.Value);
+            command.Parameters.AddWithValue("@date", newBook.Date.HasValue ? newBook.Date : DBNull.Value);
+            command.Parameters.AddWithValue("@categoryId", _categoryMapper.GetCategoryId(newBook.Category));
             command.Parameters.AddWithValue("@id", bookId);
 
             command.ExecuteNonQuery();
@@ -148,7 +146,7 @@ namespace BookVault
             connection.Open();
 
             using var command = connection.CreateCommand();
-            command.CommandText = "DELETE FROM Buecher WHERE BuecherId = @id";
+            command.CommandText = "DELETE FROM Books WHERE BookId = @id";
             command.Parameters.AddWithValue("@id", bookId);
 
             command.ExecuteNonQuery();
@@ -159,7 +157,7 @@ namespace BookVault
             return GetBooks()
                 .Where(b =>
                     b.Name.Contains(query, StringComparison.OrdinalIgnoreCase) ||
-                    b.Autor.Contains(query, StringComparison.OrdinalIgnoreCase))
+                    b.Author.Contains(query, StringComparison.OrdinalIgnoreCase))
                 .ToList();
         }
     }
