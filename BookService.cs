@@ -3,26 +3,26 @@
 
 namespace Bücherverwaltung
 {
-    public class BuecherService
+    public class BookService
     {
         private readonly string _sqliteDbPath;
 
         private readonly string _connStr;
 
-        private readonly KategorieMapper _kategorieMapper;
+        private readonly CategoryMapper _categoryMapper;
 
-        public BuecherService(string dbPath)
+        public BookService(string dbPath)
         {
             _sqliteDbPath = dbPath;
             _connStr = $"Data Source={_sqliteDbPath}";
-            _kategorieMapper = new KategorieMapper(_sqliteDbPath);
+            _categoryMapper = new CategoryMapper(_sqliteDbPath);
         }
 
-        public List<Buch> GetBuecher()
+        public List<Book> GetBooks()
         {
             using var connection = new SqliteConnection(_connStr);
 
-            List<Buch> buecher = new();
+            List<Book> books = new();
 
             connection.Open();
 
@@ -32,37 +32,37 @@ namespace Bücherverwaltung
             using var reader = command.ExecuteReader();
             while (reader.Read())
             {
-                var buch = new Buch
+                var book = new Book
                 {
                     Id = reader.GetInt32(0),
                     Name = reader.GetString(1),
                     Autor = reader.GetString(2),
                     Preis = reader.IsDBNull(3) ? null : reader.GetDecimal(3),
                     Datum = reader.IsDBNull(4) ? null : reader.GetInt32(4),
-                    Kategorie = _kategorieMapper.GetKategorieName(reader.GetInt32(5))
+                    Kategorie = _categoryMapper.GetCategoryName(reader.GetInt32(5))
                 };
-                buecher.Add(buch);
+                books.Add(book);
             }
 
-            return buecher;
+            return books;
         }
 
-        public void AddBook(Buch buch)
+        public void AddBook(Book book)
         {
 
             using var connection = new SqliteConnection(_connStr);
 
-            var kategorieId = _kategorieMapper.GetKategorieId(buch.Kategorie);
+            var kategorieId = _categoryMapper.GeCategoryId(book.Kategorie);
 
             connection.Open();
 
             using var command = connection.CreateCommand();
             command.CommandText = "INSERT INTO Buecher (Titel, Autor, Preis, Erscheinungsjahr, KategorieId) VALUES (@titel, @autor, @preis, @erscheinungsjahr, @kategorieId)";
 
-            command.Parameters.AddWithValue("@titel", buch.Name);
-            command.Parameters.AddWithValue("@autor", buch.Autor);
-            command.Parameters.AddWithValue("@preis", buch.Preis.HasValue ? buch.Preis : DBNull.Value);
-            command.Parameters.AddWithValue("@erscheinungsjahr", buch.Datum.HasValue ? buch.Datum: DBNull.Value);
+            command.Parameters.AddWithValue("@titel", book.Name);
+            command.Parameters.AddWithValue("@autor", book.Autor);
+            command.Parameters.AddWithValue("@preis", book.Preis.HasValue ? book.Preis : DBNull.Value);
+            command.Parameters.AddWithValue("@erscheinungsjahr", book.Datum.HasValue ? book.Datum: DBNull.Value);
             command.Parameters.AddWithValue("@kategorieId", kategorieId);
 
             command.ExecuteNonQuery();
@@ -70,35 +70,35 @@ namespace Bücherverwaltung
             Console.WriteLine("Buch gespeichert");
         }
 
-        public List<Buch> GetCategoryBooks(string category)
+        public List<Book> GetCategoryBooks(string category)
         {
             using var connection = new SqliteConnection(_connStr);
 
-            List<Buch> buecher = new();
+            List<Book> books = new();
 
             connection.Open();
 
             using var command = connection.CreateCommand();
             command.CommandText = "SELECT BuecherId, Titel, Autor, Preis, Erscheinungsjahr, KategorieId FROM Buecher WHERE KategorieId = @kategorie";
 
-            command.Parameters.AddWithValue("@kategorie", _kategorieMapper.GetKategorieId(category));
+            command.Parameters.AddWithValue("@kategorie", _categoryMapper.GeCategoryId(category));
 
             using var reader = command.ExecuteReader();
             while (reader.Read())
             {
-                var buch = new Buch
+                var book = new Book
                 {
                     Id = reader.GetInt32(0),
                     Name = reader.GetString(1),
                     Autor = reader.GetString(2),
                     Preis = reader.IsDBNull(3) ? null : reader.GetDecimal(3),
                     Datum = reader.IsDBNull(4) ? null : reader.GetInt32(4),
-                    Kategorie = _kategorieMapper.GetKategorieName(reader.GetInt32(5))
+                    Kategorie = _categoryMapper.GetCategoryName(reader.GetInt32(5))
                 };
-                buecher.Add(buch);
+                books.Add(book);
             }
 
-            return buecher;
+            return books;
         }
 
         public List<string> GetCategories()
@@ -122,7 +122,7 @@ namespace Bücherverwaltung
             return categories;
         }
 
-        public void EditBook(int bookId, Buch neuesBuch)
+        public void EditBook(int bookId, Book newBook)
         {
             using var connection = new SqliteConnection(_connStr);
 
@@ -131,11 +131,11 @@ namespace Bücherverwaltung
             using var command = connection.CreateCommand();
             command.CommandText = "UPDATE Buecher SET Titel = @titel, Autor = @autor, Preis = @preis, Erscheinungsjahr = @erscheinungsjahr, KategorieId = @kategorieId WHERE BuecherId = @id";
 
-            command.Parameters.AddWithValue("@titel", neuesBuch.Name);
-            command.Parameters.AddWithValue("@autor", neuesBuch.Autor);
-            command.Parameters.AddWithValue("@preis", neuesBuch.Preis.HasValue ? neuesBuch.Preis : DBNull.Value);
-            command.Parameters.AddWithValue("@erscheinungsjahr", neuesBuch.Datum.HasValue ? neuesBuch.Datum : DBNull.Value);
-            command.Parameters.AddWithValue("@kategorieId", _kategorieMapper.GetKategorieId(neuesBuch.Kategorie));
+            command.Parameters.AddWithValue("@titel", newBook.Name);
+            command.Parameters.AddWithValue("@autor", newBook.Autor);
+            command.Parameters.AddWithValue("@preis", newBook.Preis.HasValue ? newBook.Preis : DBNull.Value);
+            command.Parameters.AddWithValue("@erscheinungsjahr", newBook.Datum.HasValue ? newBook.Datum : DBNull.Value);
+            command.Parameters.AddWithValue("@kategorieId", _categoryMapper.GeCategoryId(newBook.Kategorie));
             command.Parameters.AddWithValue("@id", bookId);
 
             command.ExecuteNonQuery();
@@ -154,12 +154,12 @@ namespace Bücherverwaltung
             command.ExecuteNonQuery();
         }
 
-        public List<Buch> SearchBooks(string suchbegriff)
+        public List<Book> SearchBooks(string query)
         {
-            return GetBuecher()
+            return GetBooks()
                 .Where(b =>
-                    b.Name.Contains(suchbegriff, StringComparison.OrdinalIgnoreCase) ||
-                    b.Autor.Contains(suchbegriff, StringComparison.OrdinalIgnoreCase))
+                    b.Name.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                    b.Autor.Contains(query, StringComparison.OrdinalIgnoreCase))
                 .ToList();
         }
     }

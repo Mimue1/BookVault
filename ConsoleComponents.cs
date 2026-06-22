@@ -1,15 +1,14 @@
 ﻿using Spectre.Console;
 
-
 namespace Bücherverwaltung
 {
     public class ConsoleComponents
     {
-        private readonly BuecherService _buecherService;
+        private readonly BookService _bookService;
 
-        public ConsoleComponents(BuecherService buecherService)
+        public ConsoleComponents(BookService bookService)
         {
-            _buecherService = buecherService;
+            _bookService = bookService;
         }
 
         public  void ShowHeader()
@@ -19,11 +18,10 @@ namespace Bücherverwaltung
                     .Color(Color.DeepSkyBlue1)
             );
 
-            AnsiConsole.MarkupLine("[grey]Bücherverwaltung System v1.0[/]\n");
             AnsiConsole.Write(new Rule());
         }
 
-        public void Home()
+        public void App()
         {
             while (true)
             {
@@ -31,7 +29,7 @@ namespace Bücherverwaltung
 
                 ShowHeader();
 
-                var readingBooks = _buecherService.GetCategoryBooks("Reading")
+                var readingBooks = _bookService.GetCategoryBooks("Reading")
                                               .Select(b => b.Name);
 
                 if (readingBooks.Any())
@@ -61,7 +59,7 @@ namespace Bücherverwaltung
                         SearchBook(); 
                         break;
                     case "Bücher anzeigen":
-                        ShowBooks(_buecherService.GetBuecher().OrderBy(b => b.Kategorie).ToList());
+                        ShowBooks(_bookService.GetBooks().OrderBy(b => b.Kategorie).ToList());
                         break;
                     case "Bücher verwalten":
                         ShowManagement();
@@ -72,7 +70,7 @@ namespace Bücherverwaltung
             }
         }
 
-        public void ShowBooks(List<Buch> buecher)
+        public void ShowBooks(List<Book> buecher)
         {
             Console.Clear();
             ShowHeader();
@@ -124,7 +122,7 @@ namespace Bücherverwaltung
                     if(buch != null) DeleteBook(buch);
                     break;
                 case "Zurück":
-                    Home();
+                    App();
                     break;
             }
         }
@@ -138,10 +136,10 @@ namespace Bücherverwaltung
             var kategorie = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
                     .Title("Kategorie")
-                    .AddChoices(_buecherService.GetCategories())
+                    .AddChoices(_bookService.GetCategories())
             );
 
-            Buch buch = new()
+            Book buch = new()
             {
                 Name = titel,
                 Autor = autor,
@@ -163,10 +161,10 @@ namespace Bücherverwaltung
             AnsiConsole.Write(panel);
             AnsiConsole.WriteLine();
 
-            // Confirm order
+
             if (AnsiConsole.Confirm("Buch Hinzufügen?"))
             {
-                _buecherService.AddBook(buch);
+                _bookService.AddBook(buch);
                 AnsiConsole.MarkupLine($"[green]Das Buch {buch.Name} wurde Hinzugefügt![/]");
                 AnsiConsole.WriteLine();
                 AnsiConsole.MarkupLine("[grey]Drücke eine Taste um zurück zu gehen...[/]");
@@ -178,10 +176,10 @@ namespace Bücherverwaltung
             }
         }
 
-        public Buch? SearchBook()
+        public Book? SearchBook()
         {
             var suchbegriff = AnsiConsole.Prompt(new TextPrompt<string>("Suchbegriff(Enter = Alle):").AllowEmpty());
-            var treffer = suchbegriff == string.Empty ? _buecherService.GetBuecher() : _buecherService.SearchBooks(suchbegriff);
+            var treffer = suchbegriff == string.Empty ? _bookService.GetBooks() : _bookService.SearchBooks(suchbegriff);
             if (!treffer.Any())
             {
                 AnsiConsole.MarkupLine("[yellow]Keine Treffer gefunden.[/]");
@@ -191,7 +189,7 @@ namespace Bücherverwaltung
             }
 
             var buch = AnsiConsole.Prompt(
-                new SelectionPrompt<Buch>()
+                new SelectionPrompt<Book>()
                     .Title("Buch auswählen")
                     .UseConverter(b => $"{b.Name} - {b.Autor}")
                     .AddChoices(treffer));
@@ -209,7 +207,7 @@ namespace Bücherverwaltung
             return buch;
         }
 
-        public void DeleteBook(Buch buch)
+        public void DeleteBook(Book buch)
         {
             AnsiConsole.MarkupLine($"[red]{buch.Name} wird gelöscht:[/]");
 
@@ -217,7 +215,7 @@ namespace Bücherverwaltung
 
             if(confirmDelete)
             {
-                _buecherService.DeleteBook(buch.Id);
+                _bookService.DeleteBook(buch.Id);
             }
 
             return;
@@ -229,7 +227,7 @@ namespace Bücherverwaltung
             var buch = SearchBook();
             if (buch == null) return;
 
-            var workingCopy = new Buch
+            var workingCopy = new Book
             {
                 Id = buch.Id,
                 Name = buch.Name,
@@ -289,11 +287,11 @@ namespace Bücherverwaltung
                         workingCopy.Kategorie = AnsiConsole.Prompt(
                             new SelectionPrompt<string>()
                                 .Title("Neue Kategorie")
-                                .AddChoices(_buecherService.GetCategories()));
+                                .AddChoices(_bookService.GetCategories()));
                         break;
 
                     case "Speichern":
-                        _buecherService.EditBook(buch.Id, workingCopy);
+                        _bookService.EditBook(buch.Id, workingCopy);
                         AnsiConsole.MarkupLine("[green]Änderungen gespeichert[/]");
                         Console.ReadKey();
                         return;
@@ -306,7 +304,7 @@ namespace Bücherverwaltung
             }
         }
 
-        private void ShowEditPreview(Buch b)
+        private void ShowEditPreview(Book b)
         {
             var panel = new Panel(
                 new Rows(

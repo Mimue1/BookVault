@@ -1,22 +1,17 @@
 ﻿using Microsoft.Data.Sqlite;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Bücherverwaltung
 {
-    public class KategorieMapper
+    public class CategoryMapper
     {
         private readonly string _sqliteDbPath;
 
-        public KategorieMapper(string sqliteDbPath)
+        public CategoryMapper(string sqliteDbPath)
         {
             _sqliteDbPath = sqliteDbPath;
         }
 
-        public int GetKategorieId(string name)
+        public int GeCategoryId(string name)
         {
             using var connection = new SqliteConnection($"Data Source={_sqliteDbPath}");
             connection.Open();
@@ -32,7 +27,7 @@ namespace Bücherverwaltung
             return Convert.ToInt32(result);
         }
 
-        public string GetKategorieName(int id)
+        public string GetCategoryName(int id)
         {
             using var connection = new SqliteConnection($"Data Source={_sqliteDbPath}");
             connection.Open();
