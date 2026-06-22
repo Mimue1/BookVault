@@ -1,4 +1,5 @@
 ﻿using Microsoft.Data.Sqlite;
+using System.Threading.Tasks;
 
 
 namespace Bücherverwaltung
@@ -18,19 +19,19 @@ namespace Bücherverwaltung
             _kategorieMapper = new KategorieMapper(_sqliteDbPath);
         }
 
-        public List<Buch> GetBuecher()
+        public async Task<List<Buch>> GetBuecherAsync()
         {
             using var connection = new SqliteConnection(_connStr);
 
             List<Buch> buecher = new();
 
-            connection.Open();
+            await connection.OpenAsync();
 
             using var command = connection.CreateCommand();
             command.CommandText = "SELECT * FROM Buecher";
 
-            using var reader = command.ExecuteReader();
-            while (reader.Read())
+            using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
             {
                 var buch = new Buch
                 {
@@ -47,14 +48,14 @@ namespace Bücherverwaltung
             return buecher;
         }
 
-        public void AddBook(Buch buch)
+        public async Task AddBookAsync(Buch buch)
         {
 
             using var connection = new SqliteConnection(_connStr);
 
             var kategorieId = _kategorieMapper.GetKategorieId(buch.Kategorie);
 
-            connection.Open();
+            await connection.OpenAsync();
 
             using var command = connection.CreateCommand();
             command.CommandText = "INSERT INTO Buecher (Titel, Autor, Preis, Erscheinungsjahr, KategorieId) VALUES (@titel, @autor, @preis, @erscheinungsjahr, @kategorieId)";
@@ -65,26 +66,26 @@ namespace Bücherverwaltung
             command.Parameters.AddWithValue("@erscheinungsjahr", buch.Datum.HasValue ? buch.Datum: DBNull.Value);
             command.Parameters.AddWithValue("@kategorieId", kategorieId);
 
-            command.ExecuteNonQuery();
+            await command.ExecuteNonQueryAsync();
 
             Console.WriteLine("Buch gespeichert");
         }
 
-        public List<Buch> GetCategoryBooks(string category)
+        public async Task<List<Buch>> GetCategoryBooksAsync(string category)
         {
             using var connection = new SqliteConnection(_connStr);
 
             List<Buch> buecher = new();
 
-            connection.Open();
+            await connection.OpenAsync();
 
             using var command = connection.CreateCommand();
             command.CommandText = "SELECT BuecherId, Titel, Autor, Preis, Erscheinungsjahr, KategorieId FROM Buecher WHERE KategorieId = @kategorie";
 
             command.Parameters.AddWithValue("@kategorie", _kategorieMapper.GetKategorieId(category));
 
-            using var reader = command.ExecuteReader();
-            while (reader.Read())
+            using var reader = await command.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
             {
                 var buch = new Buch
                 {
@@ -101,20 +102,20 @@ namespace Bücherverwaltung
             return buecher;
         }
 
-        public List<string> GetCategories()
+        public async Task<List<string>> GetCategoriesAsync()
         {
             using var connection = new SqliteConnection(_connStr);
 
             List<string> categories = new();
 
-            connection.Open();
+            await connection.OpenAsync();
 
 
             using var command = connection.CreateCommand();
             command.CommandText = "SELECT Name FROM Kategorien";
 
-            using var reader = command.ExecuteReader();
-            while (reader.Read())
+            using var reader = await command.ExecuteReaderAsync();
+            while ( await reader.ReadAsync())
             {
                 categories.Add(reader.GetString(0));
             }
@@ -122,11 +123,11 @@ namespace Bücherverwaltung
             return categories;
         }
 
-        public void EditBook(int bookId, Buch neuesBuch)
+        public async Task EditBookAsync(int bookId, Buch neuesBuch)
         {
             using var connection = new SqliteConnection(_connStr);
 
-            connection.Open();
+            await connection.OpenAsync();
 
             using var command = connection.CreateCommand();
             command.CommandText = "UPDATE Buecher SET Titel = @titel, Autor = @autor, Preis = @preis, Erscheinungsjahr = @erscheinungsjahr, KategorieId = @kategorieId WHERE BuecherId = @id";
@@ -138,25 +139,30 @@ namespace Bücherverwaltung
             command.Parameters.AddWithValue("@kategorieId", _kategorieMapper.GetKategorieId(neuesBuch.Kategorie));
             command.Parameters.AddWithValue("@id", bookId);
 
-            command.ExecuteNonQuery();
+            await command.ExecuteNonQueryAsync();
         }
 
-        public void DeleteBook(int bookId)
+        public async Task DeleteBookAsync(int bookId)
         {
             using var connection = new SqliteConnection(_connStr);
 
-            connection.Open();
+            await connection.OpenAsync();
 
             using var command = connection.CreateCommand();
             command.CommandText = "DELETE FROM Buecher WHERE BuecherId = @id";
             command.Parameters.AddWithValue("@id", bookId);
 
-            command.ExecuteNonQuery();
+            await command.ExecuteNonQueryAsync();
         }
 
-        public List<Buch> SearchBooks(string suchbegriff)
+        public async Task<List<Buch>> SearchBooksAsync(string suchbegriff)
         {
-            return GetBuecher()
+            if (string.IsNullOrWhiteSpace(suchbegriff))
+            {
+                return await GetBuecherAsync();
+            }
+            var buecher = await GetBuecherAsync();
+            return buecher
                 .Where(b =>
                     b.Name.Contains(suchbegriff, StringComparison.OrdinalIgnoreCase) ||
                     b.Autor.Contains(suchbegriff, StringComparison.OrdinalIgnoreCase))

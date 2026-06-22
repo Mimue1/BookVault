@@ -1,4 +1,5 @@
 ﻿using Spectre.Console;
+using System.Threading.Tasks;
 
 
 namespace Bücherverwaltung
@@ -23,7 +24,7 @@ namespace Bücherverwaltung
             AnsiConsole.Write(new Rule());
         }
 
-        public void Home()
+        public async Task Home()
         {
             while (true)
             {
@@ -31,13 +32,14 @@ namespace Bücherverwaltung
 
                 ShowHeader();
 
-                var readingBooks = _buecherService.GetCategoryBooks("Reading")
-                                              .Select(b => b.Name);
+                var readingBooks = await _buecherService.GetCategoryBooksAsync("Reading");
+                                              
+                var books = readingBooks.Select(b => b.Name);
 
-                if (readingBooks.Any())
+                if (books.Any())
                 {
                     var content = new Markup(
-                        string.Join("\n", readingBooks.Select(b => $"- {b}"))
+                        string.Join("\n", books.Select(b => $"- {b}"))
                     );
 
                     var panel = new Panel(content)
@@ -58,13 +60,14 @@ namespace Bücherverwaltung
                 switch (choice)
                 {
                     case "Suche":
-                        SearchBook(); 
+                        await SearchBook(); 
                         break;
                     case "Bücher anzeigen":
-                        ShowBooks(_buecherService.GetBuecher().OrderBy(b => b.Kategorie).ToList());
+                        var buecher = await _buecherService.GetBuecherAsync();
+                        ShowBooks(buecher.OrderBy(b => b.Kategorie).ToList());
                         break;
                     case "Bücher verwalten":
-                        ShowManagement();
+                        await ShowManagement();
                         break;
                     case "Beenden":
                         return;
@@ -103,7 +106,7 @@ namespace Bücherverwaltung
             Console.ReadKey();
         }
 
-        public void ShowManagement()
+        public async Task ShowManagement()
         {
             var choice = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
@@ -114,22 +117,22 @@ namespace Bücherverwaltung
             switch (choice)
             {
                 case "Buch Hinzufügen":
-                    AddBook();
+                    await AddBook();
                     break;
                 case "Buch Bearbeiten":
-                    EditBook();
+                    await EditBook();
                     break;
                 case "Buch Löschen":
-                    var buch = SearchBook();
-                    if(buch != null) DeleteBook(buch);
+                    var buch = await SearchBook();
+                    if(buch != null) await DeleteBook(buch);
                     break;
                 case "Zurück":
-                    Home();
+                    await Home();
                     break;
             }
         }
 
-        public void AddBook()
+        public async Task AddBook()
         {
             var titel = AnsiConsole.Ask<string>("Titel");
             var autor = AnsiConsole.Ask<string>("Autor");
@@ -138,7 +141,7 @@ namespace Bücherverwaltung
             var kategorie = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
                     .Title("Kategorie")
-                    .AddChoices(_buecherService.GetCategories())
+                    .AddChoices(await _buecherService.GetCategoriesAsync())
             );
 
             Buch buch = new()
@@ -166,7 +169,7 @@ namespace Bücherverwaltung
             // Confirm order
             if (AnsiConsole.Confirm("Buch Hinzufügen?"))
             {
-                _buecherService.AddBook(buch);
+                await _buecherService.AddBookAsync(buch);
                 AnsiConsole.MarkupLine($"[green]Das Buch {buch.Name} wurde Hinzugefügt![/]");
                 AnsiConsole.WriteLine();
                 AnsiConsole.MarkupLine("[grey]Drücke eine Taste um zurück zu gehen...[/]");
@@ -178,10 +181,10 @@ namespace Bücherverwaltung
             }
         }
 
-        public Buch? SearchBook()
+        public async Task<Buch?> SearchBook()
         {
             var suchbegriff = AnsiConsole.Prompt(new TextPrompt<string>("Suchbegriff(Enter = Alle):").AllowEmpty());
-            var treffer = suchbegriff == string.Empty ? _buecherService.GetBuecher() : _buecherService.SearchBooks(suchbegriff);
+            var treffer = await _buecherService.SearchBooksAsync(suchbegriff);
             if (!treffer.Any())
             {
                 AnsiConsole.MarkupLine("[yellow]Keine Treffer gefunden.[/]");
@@ -209,7 +212,7 @@ namespace Bücherverwaltung
             return buch;
         }
 
-        public void DeleteBook(Buch buch)
+        public async Task DeleteBook(Buch buch)
         {
             AnsiConsole.MarkupLine($"[red]{buch.Name} wird gelöscht:[/]");
 
@@ -217,16 +220,16 @@ namespace Bücherverwaltung
 
             if(confirmDelete)
             {
-                _buecherService.DeleteBook(buch.Id);
+                await _buecherService.DeleteBookAsync(buch.Id);
             }
 
             return;
 
         }
 
-        public void EditBook()
+        public async Task EditBook()
         {
-            var buch = SearchBook();
+            var buch = await SearchBook();
             if (buch == null) return;
 
             var workingCopy = new Buch
@@ -289,11 +292,11 @@ namespace Bücherverwaltung
                         workingCopy.Kategorie = AnsiConsole.Prompt(
                             new SelectionPrompt<string>()
                                 .Title("Neue Kategorie")
-                                .AddChoices(_buecherService.GetCategories()));
+                                .AddChoices(await _buecherService.GetCategoriesAsync()));
                         break;
 
                     case "Speichern":
-                        _buecherService.EditBook(buch.Id, workingCopy);
+                        await _buecherService.EditBookAsync(buch.Id, workingCopy);
                         AnsiConsole.MarkupLine("[green]Änderungen gespeichert[/]");
                         Console.ReadKey();
                         return;
