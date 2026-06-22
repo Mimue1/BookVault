@@ -117,6 +117,7 @@ namespace Bücherverwaltung
                     AddBook();
                     break;
                 case "Buch Bearbeiten":
+                    EditBook();
                     break;
                 case "Buch Löschen":
                     var buch = SearchBook();
@@ -221,6 +222,102 @@ namespace Bücherverwaltung
 
             return;
 
+        }
+
+        public void EditBook()
+        {
+            var buch = SearchBook();
+            if (buch == null) return;
+
+            var workingCopy = new Buch
+            {
+                Id = buch.Id,
+                Name = buch.Name,
+                Autor = buch.Autor,
+                Preis = buch.Preis,
+                Datum = buch.Datum,
+                Kategorie = buch.Kategorie
+            };
+
+            while (true)
+            {
+                Console.Clear();
+                ShowHeader();
+
+                ShowEditPreview(workingCopy);
+
+                var choice = AnsiConsole.Prompt(
+                    new SelectionPrompt<string>()
+                        .Title("Was möchtest du ändern?")
+                        .AddChoices(
+                            "Titel",
+                            "Autor",
+                            "Preis",
+                            "Erscheinungsjahr",
+                            "Kategorie",
+                            "Speichern",
+                            "Abbrechen"
+                        ));
+
+                switch (choice)
+                {
+                    case "Titel":
+                        workingCopy.Name = AnsiConsole.Ask<string>(
+                            "Neuer Titel:", workingCopy.Name);
+                        break;
+
+                    case "Autor":
+                        workingCopy.Autor = AnsiConsole.Ask<string>(
+                            "Neuer Autor:", workingCopy.Autor);
+                        break;
+
+                    case "Preis":
+                        workingCopy.Preis = AnsiConsole.Prompt(
+                            new TextPrompt<decimal?>("Neuer Preis:")
+                                .DefaultValue(workingCopy.Preis)
+                                .AllowEmpty());
+                        break;
+
+                    case "Erscheinungsjahr":
+                        workingCopy.Datum = AnsiConsole.Prompt(
+                            new TextPrompt<int?>("Neues Jahr:")
+                                .DefaultValue(workingCopy.Datum)
+                                .AllowEmpty());
+                        break;
+
+                    case "Kategorie":
+                        workingCopy.Kategorie = AnsiConsole.Prompt(
+                            new SelectionPrompt<string>()
+                                .Title("Neue Kategorie")
+                                .AddChoices(_buecherService.GetCategories()));
+                        break;
+
+                    case "Speichern":
+                        _buecherService.EditBook(buch.Id, workingCopy);
+                        AnsiConsole.MarkupLine("[green]Änderungen gespeichert[/]");
+                        Console.ReadKey();
+                        return;
+
+                    case "Abbrechen":
+                        AnsiConsole.MarkupLine("[yellow]Abgebrochen[/]");
+                        Console.ReadKey();
+                        return;
+                }
+            }
+        }
+
+        private void ShowEditPreview(Buch b)
+        {
+            var panel = new Panel(
+                new Rows(
+                    new Markup($"[bold]Titel:[/] {b.Name}"),
+                    new Markup($"[bold]Autor:[/] {b.Autor}"),
+                    new Markup($"[bold]Preis:[/] {(b.Preis.HasValue ? b.Preis.ToString() : "-")}"),
+                    new Markup($"[bold]Jahr:[/] {(b.Datum.HasValue ? b.Datum.ToString() : "-")}"),
+                    new Markup($"[bold]Kategorie:[/] {b.Kategorie}")
+                ))
+                .Header("[yellow]Edit Preview[/]");
+            AnsiConsole.Write(panel);
         }
     }
 }
