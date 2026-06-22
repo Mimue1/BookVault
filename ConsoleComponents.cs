@@ -1,6 +1,6 @@
 ﻿using Spectre.Console;
 
-namespace Bücherverwaltung
+namespace BookVault
 {
     public class ConsoleComponents
     {

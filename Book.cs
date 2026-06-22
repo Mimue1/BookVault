@@ -1,4 +1,4 @@
-﻿namespace Bücherverwaltung
+﻿namespace BookVault
 {
     public class Book
     {

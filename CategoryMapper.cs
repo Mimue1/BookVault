@@ -1,6 +1,6 @@
 ﻿using Microsoft.Data.Sqlite;
 
-namespace Bücherverwaltung
+namespace BookVault
 {
     public class CategoryMapper
     {

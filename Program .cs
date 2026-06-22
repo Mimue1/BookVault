@@ -1,4 +1,4 @@
-﻿using Bücherverwaltung;
+﻿using BookVault;
 
 DatabaseInitializer.Initialize();
 
