@@ -1,10 +1,17 @@
 ﻿using BookVault;
 using Microsoft.Data.Sqlite;
 
+var folder = Path.Combine(
+    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+    "BookVault"
+);
 
-var dbPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "BookVault", "books.db");
-var connStr = $"Data Source={dbPath}";
-using var connection = new SqliteConnection(connStr);
+Directory.CreateDirectory(folder);
+
+var dbPath = Path.Combine(folder, "bookvault.db");
+
+var connectionString = $"Data Source={dbPath}";
+using var connection = new SqliteConnection(connectionString);
 connection.Open();
 
 DatabaseInitializer.Initialize(connection);
