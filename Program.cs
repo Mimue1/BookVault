@@ -2,7 +2,7 @@
 using Microsoft.Data.Sqlite;
 
 
-var dbPath = Path.Combine(AppContext.BaseDirectory, "books.db");
+var dbPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "BookVault", "books.db");
 var connStr = $"Data Source={dbPath}";
 using var connection = new SqliteConnection(connStr);
 connection.Open();
