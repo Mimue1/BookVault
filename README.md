@@ -1,3 +1,7 @@
+<img width="1280" height="720" alt="project-summary" src="https://github.com/user-attachments/assets/d38cdca9-94ea-4f2d-b7ac-6dca6457fd06" />
+
+
+---
 # BookVault – Create Installer (Inno Setup)
 
 ## 1. Publish project
