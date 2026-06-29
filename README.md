@@ -1,15 +1,15 @@
-# BookVault – Installer erstellen (Inno Setup)
+# BookVault – Create Installer (Inno Setup)
 
-## 1. Projekt publishen
+## 1. Publish project
 
-Im Projektordner ausführen:
+Run in the project folder:
 
 ```bash
 dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true
 ```
 
-**Alternativ:** 
-Projekt in VisualStudio öffnen -> rechtsklick auf projekt datei -> "publish" -> neues profil:
+**Alternatively:**
+Open the project in VisualStudio -> right-click on project file -> "publish" -> new profile:
 ```
 Configuration: Release|Any CPU
 Target Framework: net8.0
@@ -17,7 +17,7 @@ Deployment mode: Self-contained
 Target Runtime: win-x64
 Target location: \bin\release\net8.0\publish\win-x64
 
-File publich options:
+File publish options:
   Produce single file
 ```
 
@@ -25,14 +25,14 @@ File publich options:
 ```
 bin\Release\net8.0\publish\win-x64\
 ```
-Benötigt wird BookVault.exe und e_sqlite3.dll
+Required: BookVault.exe and e_sqlite3.dll
 
-## 2. Inno Setup installieren
+## 2. Install Inno Setup
 Download:
 https://jrsoftware.org/isdl.php
 
 ## 3. Inno Setup Script (BookVault.iss)
-BookVault.iss im BaseFolder erstellen
+Create BookVault.iss in the BaseFolder
 ```ini
 [Setup]
 AppName=BookVault
@@ -54,8 +54,8 @@ Name: "{commondesktop}\BookVault"; Filename: "{app}\BookVault.exe"
 Type: filesandordirs; Name: "{localappdata}\BookVault"
 ```
 
-## 4. Installer erstellen
-- Script in Inno Setup öffnen
-- "Compile" klicken
---> Ergebnis:
-  BookVault-Setup.exe 
+## 4. Create Installer
+- Open script in Inno Setup
+- Click "Compile"
+--> Result:
+  BookVault-Setup.exe
